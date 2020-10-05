@@ -3,7 +3,7 @@
         {
             "name": "Target 1",
             "includePath": [
-                "d:\\code\\stm32\\free_rtos_task\\freertos\\Source\\include",
+                ".\\freertos\\include",
                 "D:\\Program Files\\keil5\\ARM\\ARMCC\\include",
                 "D:\\Program Files\\keil5\\ARM\\ARMCC\\include\\rw"
             ],

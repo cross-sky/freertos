@@ -5,7 +5,10 @@
             "includePath": [
                 "d:\\code\\stm32\\free_rtos_task\\freertos\\Source\\include",
                 "D:\\Program Files\\keil5\\ARM\\ARMCC\\include",
-                "D:\\Program Files\\keil5\\ARM\\ARMCC\\include\\rw"
+                "D:\\Program Files\\keil5\\ARM\\ARMCC\\include\\rw",
+                "d:\\code\\stm32\\free_rtos_task\\freertos\\Source\\portable\\RVDS\\ARM_CM3",
+                "d:\\code\\stm32\\free_rtos_task\\User",
+                "d:\\code\\stm32\\free_rtos_task\\freertos\\Source\\Source"
             ],
             "defines": [
                 "__CC_ARM",
