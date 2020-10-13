@@ -155,6 +155,38 @@
           <ExecCommand></ExecCommand>
           <Expression>\\YH_RT_Thread\../User/main.c\76</Expression>
         </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>422</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>1836</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\freertos\task.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\YH_RT_Thread\../freertos/task.c\422</Expression>
+        </Bp>
+        <Bp>
+          <Number>2</Number>
+          <Type>0</Type>
+          <LineNumber>476</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>732</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\freertos\task.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\YH_RT_Thread\../freertos/task.c\476</Expression>
+        </Bp>
       </Breakpoint>
       <WatchWindow1>
         <Ww>

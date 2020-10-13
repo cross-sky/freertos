@@ -48,10 +48,10 @@ void LED_GPIO_Config(void)
 		GPIO_Init(LED2_GPIO_PORT, &GPIO_InitStructure);
 		
 		/*选择要控制的GPIO引脚*/
-		GPIO_InitStructure.GPIO_Pin = LED3_GPIO_PIN;
+		//GPIO_InitStructure.GPIO_Pin = LED3_GPIO_PIN;
 
 		/*调用库函数，初始化GPIOF*/
-		GPIO_Init(LED3_GPIO_PORT, &GPIO_InitStructure);
+		//GPIO_Init(LED3_GPIO_PORT, &GPIO_InitStructure);
 
 		/* 关闭所有led灯	*/
 		GPIO_SetBits(LED1_GPIO_PORT, LED1_GPIO_PIN);
@@ -60,7 +60,7 @@ void LED_GPIO_Config(void)
 		GPIO_SetBits(LED2_GPIO_PORT, LED2_GPIO_PIN);	 
     
     /* 关闭所有led灯	*/
-		GPIO_SetBits(LED3_GPIO_PORT, LED3_GPIO_PIN);
+		//GPIO_SetBits(LED3_GPIO_PORT, LED3_GPIO_PIN);
 }
 
 /*********************************************END OF FILE**********************/
