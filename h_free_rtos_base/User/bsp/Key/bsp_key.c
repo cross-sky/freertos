@@ -32,14 +32,15 @@ void Key_GPIO_Config(void)
 	//选择按键的引脚
 	GPIO_InitStructure.GPIO_Pin = KEY1_GPIO_PIN; 
 	// 设置按键的引脚为浮空输入
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING; 
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU; 
+	
 	//使用结构体初始化按键
 	GPIO_Init(KEY1_GPIO_PORT, &GPIO_InitStructure);
 	
 	//选择按键的引脚
 	GPIO_InitStructure.GPIO_Pin = KEY2_GPIO_PIN; 
 	//设置按键的引脚为浮空输入
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING; 
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU; 
 	//使用结构体初始化按键
 	GPIO_Init(KEY2_GPIO_PORT, &GPIO_InitStructure);	
 }

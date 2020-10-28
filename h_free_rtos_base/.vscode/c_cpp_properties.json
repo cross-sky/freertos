@@ -21,6 +21,8 @@
                 ".\\Doc"
             ],
             "defines": [
+                "STM32F10X_HD",
+                "USE_STDPERIPH_DRIVER",
                 "__CC_ARM",
                 "__arm__",
                 "__align(x)=",
