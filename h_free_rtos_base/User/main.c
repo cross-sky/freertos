@@ -28,7 +28,7 @@
 #include "bsp_led.h"
 #include "bsp_usart.h"
 #include "bsp_key.h"
-
+#include "semphr.h"
 /**************************** 任务句柄 ********************************/
 /* 
  * 任务句柄是一个指针，用于指向一个任务，当任务创建好之后，它就具有了一个任务句柄
@@ -44,6 +44,9 @@ static TaskHandle_t KEY_Task_Handle = NULL;
 static TaskHandle_t Receive_Task_Handle = NULL;
 static TaskHandle_t Send_Task_Handle = NULL;
 
+static TaskHandle_t ReceiveSem_Task_Handle = NULL;
+static TaskHandle_t SendSem_Task_Handle = NULL;
+
 /********************************** 内核对象句柄 *********************************/
 /*
  * 信号量，消息队列，事件标志组，软件定时器这些都属于内核的对象，要想使用这些内核
@@ -56,6 +59,7 @@ static TaskHandle_t Send_Task_Handle = NULL;
  * 
  */
 QueueHandle_t   Test_Queue = NULL;
+SemaphoreHandle_t BinarySem_Handle = NULL;
 
 
 /******************************* 全局变量声明 ************************************/
@@ -79,6 +83,9 @@ static void KEY_Task(void* pvParameters); //key task
 
 static void Receive_Task(void* pvParameters);
 static void Send_Task(void* pvParameters);
+
+static void ReceiveSem_Task(void* pvParameters);
+static void SendSem_Task(void* pvParameters);
 
 static void BSP_Init(void);/* 用于初始化板载相关资源 */
 
@@ -132,7 +139,7 @@ static void AppTaskCreate_queue(void)
                         (UBaseType_t    )3,	    /* 任务的优先级 */
                         (TaskHandle_t*  )&Receive_Task_Handle);/* 任务控制块指针 */
   if(pdPASS == xReturn)
-    printf("创建Receive_Task任务成功!\r\n");
+    printf("创建ReceiveSem_Task任务成功!\r\n");
 
   xReturn = xTaskCreate((TaskFunction_t )Send_Task, /* 任务入口函数 */
                         (const char*    )"Send_Task",/* 任务名字 */
@@ -141,7 +148,39 @@ static void AppTaskCreate_queue(void)
                         (UBaseType_t    )2,	    /* 任务的优先级 */
                         (TaskHandle_t*  )&Send_Task_Handle);/* 任务控制块指针 */
   if(pdPASS == xReturn)
-    printf("创建Send_Task任务成功!\r\n");
+    printf("创建SendSem_Task任务成功!\r\n");
+
+}
+
+
+static void AppTaskCreate_sem(void)
+{
+  BaseType_t xReturn = pdPASS;
+
+  BinarySem_Handle = xSemaphoreCreateBinary();
+
+  if (NULL != BinarySem_Handle)
+  {
+    printf("success create semphore.\r\n");
+  }
+
+  xReturn = xTaskCreate((TaskFunction_t )ReceiveSem_Task, /* 任务入口函数 */
+                        (const char*    )"ReceiveSem_Task",/* 任务名字 */
+                        (uint16_t       )200,   /* 任务栈大小 */
+                        (void*          )NULL,	/* 任务入口函数参数 */
+                        (UBaseType_t    )3,	    /* 任务的优先级 */
+                        (TaskHandle_t*  )&ReceiveSem_Task_Handle);/* 任务控制块指针 */
+  if(pdPASS == xReturn)
+    printf("创建ReceiveSem_Task任务成功!\r\n");
+
+  xReturn = xTaskCreate((TaskFunction_t )SendSem_Task, /* 任务入口函数 */
+                        (const char*    )"SendSem_Task",/* 任务名字 */
+                        (uint16_t       )200,   /* 任务栈大小 */
+                        (void*          )NULL,	/* 任务入口函数参数 */
+                        (UBaseType_t    )2,	    /* 任务的优先级 */
+                        (TaskHandle_t*  )&SendSem_Task_Handle);/* 任务控制块指针 */
+  if(pdPASS == xReturn)
+    printf("创建SendSem_Task任务成功!\r\n");
 
 }
 
@@ -182,7 +221,8 @@ static void AppTaskCreate(void)
   taskENTER_CRITICAL();           //进入临界区
   
   //AppTaskCreate_key();
-  AppTaskCreate_queue();
+  //AppTaskCreate_queue();
+  AppTaskCreate_sem();
   
   vTaskDelete(AppTaskCreate_Handle); //删除AppTaskCreate任务
   
@@ -264,6 +304,56 @@ static void Send_Task(void* pvParameters)
       xReturn = xQueueSend(Test_Queue, &send_data2, 0);
       if(pdTRUE == xReturn)
         printf("success send data2.\r\n");
+    }
+
+    vTaskDelay(20);
+  }
+  
+
+}
+
+static void ReceiveSem_Task(void* pvParameters)
+{
+  BaseType_t xReturn = pdTRUE;
+  while (1)
+  {
+    xReturn = xSemaphoreTake(BinarySem_Handle, portMAX_DELAY);
+
+    if(pdTRUE == xReturn)
+      printf("receive semaphore success\r\n.");
+    else
+      printf("receive semaphore failed\r\n ");
+    LED1_TOGGLE;
+  }
+  
+}
+static void SendSem_Task(void* pvParameters)
+{
+  BaseType_t xReturn = pdPASS;
+  while (1)
+  {
+    if (Key_Scan(KEY1_GPIO_PORT, KEY1_GPIO_PIN) == KEY_ON)
+    {
+      //printf("send data1.\r\n");
+      xReturn = xSemaphoreGive(BinarySem_Handle);
+      if(pdTRUE == xReturn)
+        printf("success given semaphore\r\n");
+      else
+      {
+        printf("failed given semaphore\r\n");
+      }
+      
+    }
+    if (Key_Scan(KEY2_GPIO_PORT, KEY2_GPIO_PIN) == KEY_ON)
+    {
+      printf("send data1.\r\n");
+      xReturn = xSemaphoreGive(BinarySem_Handle);
+      if(pdTRUE == xReturn)
+        printf("success given semaphore\r\n");
+      else
+      {
+        printf("failed given semaphore\r\n");
+      }
     }
 
     vTaskDelay(20);
