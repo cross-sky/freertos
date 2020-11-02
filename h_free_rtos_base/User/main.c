@@ -23,6 +23,7 @@
 /* FreeRTOS头文件 */
 #include "FreeRTOS.h"
 #include "task.h"
+#include "queue.h"
 /* 开发板硬件bsp头文件 */
 #include "bsp_led.h"
 #include "bsp_usart.h"
@@ -40,6 +41,9 @@ static TaskHandle_t AppTaskCreate_Handle = NULL;
 static TaskHandle_t LED_Task_Handle = NULL;
 static TaskHandle_t KEY_Task_Handle = NULL;
 
+static TaskHandle_t Receive_Task_Handle = NULL;
+static TaskHandle_t Send_Task_Handle = NULL;
+
 /********************************** 内核对象句柄 *********************************/
 /*
  * 信号量，消息队列，事件标志组，软件定时器这些都属于内核的对象，要想使用这些内核
@@ -51,6 +55,7 @@ static TaskHandle_t KEY_Task_Handle = NULL;
  * 来完成的
  * 
  */
+QueueHandle_t   Test_Queue = NULL;
 
 
 /******************************* 全局变量声明 ************************************/
@@ -58,6 +63,9 @@ static TaskHandle_t KEY_Task_Handle = NULL;
  * 当我们在写应用程序的时候，可能需要用到一些全局变量。
  */
 
+
+#define   QUEUE_LEN   4
+#define   QUEUE_SIZE  4
 
 /*
 *************************************************************************
@@ -68,6 +76,9 @@ static void AppTaskCreate(void);/* 用于创建任务 */
 
 static void LED_Task(void* pvParameters);/* LED_Task任务实现 */
 static void KEY_Task(void* pvParameters); //key task
+
+static void Receive_Task(void* pvParameters);
+static void Send_Task(void* pvParameters);
 
 static void BSP_Init(void);/* 用于初始化板载相关资源 */
 
@@ -102,18 +113,41 @@ int main(void)
   while(1);   /* 正常不会执行到这里 */    
 }
 
+static void AppTaskCreate_queue(void)
+{
+  BaseType_t xReturn = pdPASS;
 
-/***********************************************************************
-  * @ 函数名  ： AppTaskCreate
-  * @ 功能说明： 为了方便管理，所有的任务创建函数都放在这个函数里面
-  * @ 参数    ： 无  
-  * @ 返回值  ： 无
-  **********************************************************************/
-static void AppTaskCreate(void)
+  Test_Queue = xQueueCreate((UBaseType_t) QUEUE_LEN,
+                            (UBaseType_t) QUEUE_SIZE);
+
+  if (NULL != Test_Queue)
+  {
+    printf("success create queue.\r\n");
+  }
+
+  xReturn = xTaskCreate((TaskFunction_t )Receive_Task, /* 任务入口函数 */
+                        (const char*    )"Receive_Task",/* 任务名字 */
+                        (uint16_t       )200,   /* 任务栈大小 */
+                        (void*          )NULL,	/* 任务入口函数参数 */
+                        (UBaseType_t    )3,	    /* 任务的优先级 */
+                        (TaskHandle_t*  )&Receive_Task_Handle);/* 任务控制块指针 */
+  if(pdPASS == xReturn)
+    printf("创建Receive_Task任务成功!\r\n");
+
+  xReturn = xTaskCreate((TaskFunction_t )Send_Task, /* 任务入口函数 */
+                        (const char*    )"Send_Task",/* 任务名字 */
+                        (uint16_t       )200,   /* 任务栈大小 */
+                        (void*          )NULL,	/* 任务入口函数参数 */
+                        (UBaseType_t    )2,	    /* 任务的优先级 */
+                        (TaskHandle_t*  )&Send_Task_Handle);/* 任务控制块指针 */
+  if(pdPASS == xReturn)
+    printf("创建Send_Task任务成功!\r\n");
+
+}
+
+static void AppTaskCreate_key(void)
 {
   BaseType_t xReturn = pdPASS;/* 定义一个创建信息返回值，默认为pdPASS */
-  
-  taskENTER_CRITICAL();           //进入临界区
   
   /* 创建LED_Task任务 */
   xReturn = xTaskCreate((TaskFunction_t )LED_Task, /* 任务入口函数 */
@@ -135,6 +169,20 @@ static void AppTaskCreate(void)
   if(pdPASS == xReturn)
     printf("create key_task success.\r\n");
 
+}
+
+/***********************************************************************
+  * @ 函数名  ： AppTaskCreate
+  * @ 功能说明： 为了方便管理，所有的任务创建函数都放在这个函数里面
+  * @ 参数    ： 无  
+  * @ 返回值  ： 无
+  **********************************************************************/
+static void AppTaskCreate(void)
+{
+  taskENTER_CRITICAL();           //进入临界区
+  
+  //AppTaskCreate_key();
+  AppTaskCreate_queue();
   
   vTaskDelete(AppTaskCreate_Handle); //删除AppTaskCreate任务
   
@@ -180,6 +228,50 @@ static void KEY_Task(void* parameter)
     vTaskDelay(30);
   }
 }
+
+static void Receive_Task(void* pvParameters)
+{
+  BaseType_t xReturn = pdTRUE;
+  uint32_t r_queue;
+  while (1)
+  {
+    xReturn = xQueueReceive(Test_Queue, &r_queue, portMAX_DELAY);
+
+    if(pdTRUE == xReturn)
+      printf("receive data is %d\r\n.", r_queue);
+    else
+      printf("receive data error, error code 0x%lx\r\n ", xReturn);
+  }
+  
+}
+static void Send_Task(void* pvParameters)
+{
+  BaseType_t xReturn = pdTRUE;
+  uint32_t send_data1 = 1;
+  uint32_t send_data2 = 2;
+  while (1)
+  {
+    if (Key_Scan(KEY1_GPIO_PORT, KEY1_GPIO_PIN) == KEY_ON)
+    {
+      printf("send data1.\r\n");
+      xReturn = xQueueSend(Test_Queue, &send_data1, 0);
+      if(pdTRUE == xReturn)
+        printf("success send data1.\r\n");
+    }
+    if (Key_Scan(KEY2_GPIO_PORT, KEY2_GPIO_PIN) == KEY_ON)
+    {
+      printf("send data2.\r\n");
+      xReturn = xQueueSend(Test_Queue, &send_data2, 0);
+      if(pdTRUE == xReturn)
+        printf("success send data2.\r\n");
+    }
+
+    vTaskDelay(20);
+  }
+  
+
+}
+
 
 /***********************************************************************
   * @ 函数名  ： BSP_Init
