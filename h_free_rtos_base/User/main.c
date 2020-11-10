@@ -29,6 +29,7 @@
 #include "bsp_usart.h"
 #include "bsp_key.h"
 #include "semphr.h"
+#include "test.h"
 /**************************** 任务句柄 ********************************/
 /* 
  * 任务句柄是一个指针，用于指向一个任务，当任务创建好之后，它就具有了一个任务句柄
@@ -46,6 +47,8 @@ static TaskHandle_t Send_Task_Handle = NULL;
 
 static TaskHandle_t ReceiveSem_Task_Handle = NULL;
 static TaskHandle_t SendSem_Task_Handle = NULL;
+
+static TaskHandle_t LCD_Task_Handle = NULL;
 
 /********************************** 内核对象句柄 *********************************/
 /*
@@ -86,6 +89,8 @@ static void Send_Task(void* pvParameters);
 
 static void ReceiveSem_Task(void* pvParameters);
 static void SendSem_Task(void* pvParameters);
+
+static void LCD_Task(void* pvParameters);
 
 static void BSP_Init(void);/* 用于初始化板载相关资源 */
 
@@ -210,6 +215,21 @@ static void AppTaskCreate_key(void)
 
 }
 
+static void AppTaskCreate_lcd(void)
+{
+  BaseType_t xReturn = pdPASS;/* 定义一个创建信息返回值，默认为pdPASS */
+  
+  /* 创建LED_Task任务 */
+  xReturn = xTaskCreate((TaskFunction_t )LCD_Task, /* 任务入口函数 */
+                        (const char*    )"LCD_Task",/* 任务名字 */
+                        (uint16_t       )400,   /* 任务栈大小 */
+                        (void*          )NULL,	/* 任务入口函数参数 */
+                        (UBaseType_t    )1,	    /* 任务的优先级 */
+                        (TaskHandle_t*  )&LCD_Task_Handle);/* 任务控制块指针 */
+  if(pdPASS == xReturn)
+    printf("创建LCD_Task任务成功!\r\n");
+}
+
 /***********************************************************************
   * @ 函数名  ： AppTaskCreate
   * @ 功能说明： 为了方便管理，所有的任务创建函数都放在这个函数里面
@@ -223,6 +243,8 @@ static void AppTaskCreate(void)
   //AppTaskCreate_key();
   //AppTaskCreate_queue();
   AppTaskCreate_sem();
+
+  AppTaskCreate_lcd();
   
   vTaskDelete(AppTaskCreate_Handle); //删除AppTaskCreate任务
   
@@ -249,6 +271,15 @@ static void LED_Task(void* parameter)
         vTaskDelay(500);   /* 延时500个tick */		 		
         printf("LED_Task Running,LED1_OFF\r\n");
     }
+}
+
+static void LCD_Task(void* parameter)
+{	
+  LCD_Init();
+  while (1)
+  {
+      main_test();
+  }
 }
 
 static void KEY_Task(void* parameter)
@@ -385,6 +416,8 @@ static void BSP_Init(void)
 	USART_Config();
   
   Key_GPIO_Config();
+
+
 }
 
 /********************************END OF FILE****************************/
