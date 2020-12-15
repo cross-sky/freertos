@@ -70,7 +70,8 @@ void main_test(void)
 	Gui_StrCenter(0,60,RED,BLUE,"综合测试程序",16,1);//居中显示	
 	Gui_StrCenter(0,90,YELLOW,BLUE,"3.5' ILI9486 320X480",16,1);//居中显示
 	Gui_StrCenter(0,120,BLUE,BLUE,"hello",16,1);//居中显示
-	LCD_ShowNum(80,120,i++, 3, 16);//居中显示
+	LCD_ShowNum(10,i<<1,i++, 3, 16);//居中显示
+	LCD_ShowNum(i,120,i++, 3, 16);//居中显示
 	//delay_ms(1500);		
 	delay_ms(1000);
 }

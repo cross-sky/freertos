@@ -141,6 +141,7 @@ void LCD_WriteRAM(u16 RGB_Code);
 u16 LCD_ReadRAM(void);		   
 u16 LCD_BGR2RGB(u16 c);
 void LCD_SetParam(void);
+void LCD_direction(u8 direction );
 
 
 //如果仍然觉得速度不够快，可以使用下面的宏定义,提高速度.

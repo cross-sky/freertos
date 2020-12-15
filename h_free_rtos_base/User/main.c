@@ -30,6 +30,7 @@
 #include "bsp_key.h"
 #include "semphr.h"
 #include "test.h"
+#include "lcd.h"
 /**************************** 任务句柄 ********************************/
 /* 
  * 任务句柄是一个指针，用于指向一个任务，当任务创建好之后，它就具有了一个任务句柄
@@ -304,6 +305,8 @@ static void Receive_Task(void* pvParameters)
 {
   BaseType_t xReturn = pdTRUE;
   uint32_t r_queue;
+  static uint8_t i = 0;
+
   while (1)
   {
     xReturn = xQueueReceive(Test_Queue, &r_queue, portMAX_DELAY);
@@ -346,12 +349,21 @@ static void Send_Task(void* pvParameters)
 static void ReceiveSem_Task(void* pvParameters)
 {
   BaseType_t xReturn = pdTRUE;
+  static uint8_t i = 0;
   while (1)
   {
     xReturn = xSemaphoreTake(BinarySem_Handle, portMAX_DELAY);
+    if (i++>3)
+      i=0;
+
+    LCD_direction(i);
+    LCD_Clear(0xffff);
+    if (i>3)
+      i=0;
+
 
     if(pdTRUE == xReturn)
-      printf("receive semaphore success\r\n.");
+      printf("receive semaphore success, %d\r\n.", i);
     else
       printf("receive semaphore failed\r\n ");
     LED1_TOGGLE;
